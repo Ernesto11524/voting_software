@@ -190,7 +190,7 @@
 }
 
 /* small note and accessibility */
-.vote-note { font-size: 0. Nine rem; color: #666; margin-top: 6px; } /* readable helper text */
+.vote-note { font-size: 0.9rem; color: #666; margin-top: 6px; } /* readable helper text */
 .vote-controls .btn-yes:focus, .vote-controls .btn-no:focus, .vote-btn:focus {
   outline: 3px solid rgba(62,39,35,0.12);
   outline-offset: 3px;

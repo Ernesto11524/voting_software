@@ -1,3 +1,10 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vote.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="vote-container">
     <h2>Cast Your Vote</h2>
@@ -25,7 +32,11 @@
                 <div class="candidate-options">
                     {% for candidate in position.candidate_position.all %}
                         <div class="candidate-block" id="candidate-row-{{ candidate.id }}">
-                            <img src="{{ candidate.photo.url }}" class="candidate-photo" alt="{{ candidate.candidate_name.first_name }}">
+                            {% if candidate.photo %}
+                                <img src="{{ candidate.photo.url }}" class="candidate-photo" alt="{{ candidate.candidate_name.first_name }}">
+                            {% else %}
+                                <img src="{% static 'images/default-avatar.png' %}" class="candidate-photo" alt="No photo">
+                            {% endif %}
                             <div class="candidate-info">
                                 <div class="candidate-name">{{ candidate.candidate_name.first_name }} {{ candidate.candidate_name.last_name }}</div>
                                 <div class="candidate-role">{{ candidate.candidate_position.position_name }}</div>

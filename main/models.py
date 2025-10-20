@@ -23,6 +23,7 @@ class Candidate(models.Model):
     def __str__(self):
         return f"{self.candidate_name.first_name} {self.candidate_name.last_name}"
 
+# ...existing code...
 class Vote(models.Model):
     voter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='votes')
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
@@ -31,7 +32,8 @@ class Vote(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('voter', 'position')
+        # changed to prevent duplicate votes per candidate per voter
+        unique_together = ('voter', 'candidate')
 
     def __str__(self):
         return f"{self.voter.username} voted {self.choice} for {self.candidate} as {self.position}"
