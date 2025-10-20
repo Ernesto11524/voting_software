@@ -1,0 +1,23 @@
+<!-- filepath: main/templates/main/admin_home.html -->
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Admin Home - Voting System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="homepage-container">
+    <h2>Welcome, {{ user.first_name }} (Admin)!</h2>
+    <p>Use the options below to manage the voting system.</p>
+
+    <div class="homepage-actions">
+        <a href="{% url 'manage_vote_dashboard' %}" class="btn">Manage Votes</a>
+        <a href="{% url 'manage_positions' %}" class="btn">Manage Positions</a>
+        <a href="{% url 'manage_candidates' %}" class="btn">Manage Candidates</a>
+    </div>
+</div>
+{% endblock %}

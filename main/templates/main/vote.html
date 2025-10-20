@@ -1,0 +1,112 @@
+{% block content %}
+<div class="vote-container">
+    <h2>Cast Your Vote</h2>
+
+    <form method="POST" id="vote-form">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="form-errors" style="margin-bottom:12px;">
+                <ul style="color:#b00020;">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% for position in positions %}
+            <div class="position-block">
+                <h3>{{ position.position_name }}</h3>
+                <div class="candidate-options">
+                    {% for candidate in position.candidate_position.all %}
+                        <div class="candidate-block" id="candidate-row-{{ candidate.id }}">
+                            <img src="{{ candidate.photo.url }}" class="candidate-photo" alt="{{ candidate.candidate_name.first_name }}">
+                            <div class="candidate-info">
+                                <div class="candidate-name">{{ candidate.candidate_name.first_name }} {{ candidate.candidate_name.last_name }}</div>
+                                <div class="candidate-role">{{ candidate.candidate_position.position_name }}</div>
+                                <div class="vote-note">Click Yes to support, No to reject.</div>
+                            </div>
+
+                            <div class="vote-controls" data-candidate="{{ candidate.id }}">
+                                <!-- hidden input to store the chosen value -->
+                                <input type="hidden" name="vote_{{ candidate.id }}" id="vote_{{ candidate.id }}" value="">
+
+                                <button type="button" class="btn-yes" onclick="selectVote('{{ candidate.id }}','yes', this)" aria-label="Vote Yes for {{ candidate.candidate_name.first_name }}">
+                                    Yes
+                                </button>
+                                <button type="button" class="btn-no" onclick="selectVote('{{ candidate.id }}','no', this)" aria-label="Vote No for {{ candidate.candidate_name.first_name }}">
+                                    No
+                                </button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-candidates">No candidates for this position yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+        <div style="text-align:center; margin-top:18px;">
+            <button type="submit" class="btn-vote" style="padding:12px 28px; font-size:1rem; border-radius:8px; background:#3E2723; color:#fff; border:none; cursor:pointer;">
+                Submit Vote
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+/* JS to handle button style toggling and form validation */
+function selectVote(candidateId, value, btn) {
+    // set value in hidden input
+    var hidden = document.getElementById('vote_' + candidateId);
+    if (!hidden) return;
+    hidden.value = value;
+
+    // toggle selected class on the clicked button and remove from sibling
+    var container = btn.parentElement;
+    var buttons = container.querySelectorAll('button');
+    buttons.forEach(function(b) {
+        b.classList.remove('selected');
+    });
+    btn.classList.add('selected');
+
+    // visually mark the candidate row (optional)
+    var row = document.getElementById('candidate-row-' + candidateId);
+    if (row) {
+        if (value === 'yes') {
+            row.style.borderColor = '#e6f4ea';
+        } else {
+            row.style.borderColor = '#fdecea';
+        }
+    }
+}
+
+document.getElementById('vote-form').addEventListener('submit', function(evt) {
+    // Ensure every candidate has a vote selected (hidden input non-empty)
+    var missing = [];
+    var hiddenInputs = document.querySelectorAll('input[type="hidden"][id^="vote_"]');
+    hiddenInputs.forEach(function(inp) {
+        if (!inp.value || inp.value.trim() === '') {
+            missing.push(inp.id);
+        }
+    });
+
+    if (missing.length > 0) {
+        // focus/scroll to first missing
+        var first = document.getElementById(missing[0]);
+        if (first) {
+            first.closest('.candidate-block').scrollIntoView({behavior:'smooth', block:'center'});
+        }
+        alert('Please choose Yes or No for every candidate before submitting.');
+        evt.preventDefault();
+        return false;
+    }
+    // allow submit
+});
+</script>
+{% endblock %}

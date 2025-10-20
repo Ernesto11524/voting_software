@@ -1,0 +1,47 @@
+<!-- filepath: main/templates/main/vote_results.html -->
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Vote Results - Voting System{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vote_results.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <h2>Vote Results by Position</h2>
+    {% for result in results %}
+        <div class="position-block">
+            <h3>{{ result.position.position_name }}</h3>
+            <div class="candidate-grid">
+                {% for item in result.candidates %}
+                <a href="{% url 'candidate_voters' item.candidate.id %}" style="text-decoration: none;">
+                    <div class="candidate-card candidate-card-link">
+                        <img src="{{ item.candidate.photo.url }}" class="candidate-photo" alt="{{ item.candidate.candidate_name.first_name }}">
+                        <div class="candidate-name">
+                            {{ item.candidate.candidate_name.first_name }} {{ item.candidate.candidate_name.last_name }}
+                        </div>
+
+                        <div class="vote-badges">
+                            <div class="badge badge-yes">Yes {{ item.yes_count }}</div>
+                            <div class="badge badge-no">No {{ item.no_count }}</div>
+                        </div>
+
+                        <div class="vote-stats">
+                            {% if item.total > 0 %}
+                                {{ item.total }} total votes
+                                <div class="progress" aria-hidden="true">
+                                    <i style="{{ item.yes_style }}"></i>
+                                </div>
+                            {% else %}
+                                No votes yet
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
