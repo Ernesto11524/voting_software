@@ -59,9 +59,31 @@ def register_candidate(request):
         form = CandidateForm()
     return render(request, 'main/register_candidate.html', {'form': form})
 
+# ...existing code...
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
+from django.db.models import Count, Q
+from django.utils import timezone
+import datetime
+# ...existing code...
+
 @login_required
 def vote_view(request):
+    # Block voting after 5:00 PM local time and show a message on the vote page
+    now_local = timezone.localtime()
+    end_time = datetime.time(17, 0)  # 17:00 == 5:00 PM
     positions = Position.objects.prefetch_related('candidate_position').all()
+
+    if now_local.time() >= end_time:
+        messages.info(request, "Voting has ended for today.")
+        form = VotingForm()
+        return render(request, 'main/vote.html', {
+            'form': form,
+            'positions': positions,
+            'voting_closed': True,
+        })
+
     has_voted = Vote.objects.filter(voter=request.user).exists()
     if has_voted:
         messages.error(request, "You have already voted. Voting is allowed only once.")
@@ -91,7 +113,8 @@ def vote_view(request):
             messages.error(request, "There was an error with your vote submission. Please vote for every candidate.")
     else:
         form = VotingForm()
-    return render(request, 'main/vote.html', {'form': form, 'positions': positions})        
+    return render(request, 'main/vote.html', {'form': form, 'positions': positions})
+# ...existing code...     
 
 def manage_vote_dashboard(request):
     total_voters = User.objects.count()
