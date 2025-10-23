@@ -228,8 +228,8 @@ def export_vote_results_pdf(request):
 
     # summary counts
     story.append(Paragraph(f"Total registered voters: <b>{total_voters}</b>", styles['Normal']))
-    story.append(Paragraph(f"Number who voted: <b>{voted_count}</b>", styles['Normal']))
-    story.append(Paragraph(f"Number yet to vote: <b>{not_voted_count}</b>", styles['Normal']))
+    story.append(Paragraph(f"Voted: <b>{voted_count}</b>", styles['Normal']))
+    story.append(Paragraph(f"Yet to vote: <b>{not_voted_count}</b>", styles['Normal']))
     story.append(Spacer(1, 12))
 
     # per-position tables
