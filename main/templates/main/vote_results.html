@@ -43,5 +43,9 @@
             </div>
         </div>
     {% endfor %}
+    <div class="results-header">
+        <h2>Vote Results by Position</h2>
+        <a href="{% url 'vote_results_pdf' %}" class="btn" target="_blank" rel="noopener">Export PDF</a>
+    </div>
 </div>
 {% endblock %}

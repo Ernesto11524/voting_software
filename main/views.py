@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from .models import Position, Candidate, Vote
 from .forms import PositionForm, CandidateForm, VotingForm, CustomLoginForm
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Count, Q
@@ -58,6 +59,7 @@ def register_candidate(request):
         form = CandidateForm()
     return render(request, 'main/register_candidate.html', {'form': form})
 
+@login_required
 def vote_view(request):
     positions = Position.objects.prefetch_related('candidate_position').all()
     has_voted = Vote.objects.filter(voter=request.user).exists()
@@ -171,3 +173,94 @@ class CustomLoginView(LoginView):
         else:
             return reverse_lazy('user_homepage')
         
+
+# ...existing code...
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+# ...existing code...
+
+def export_vote_results_pdf(request):
+    """
+    Generate a PDF summarising:
+    - total voters
+    - number who voted
+    - number not voted
+    - per-position candidate yes/no counts
+    """
+    # basic counts
+    total_voters = User.objects.count()
+    voted_count = Vote.objects.values('voter').distinct().count()
+    not_voted_count = total_voters - voted_count
+
+    # build results same as vote_results view
+    positions = Position.objects.prefetch_related('candidate_position').all()
+    results = []
+    for position in positions:
+        candidates = position.candidate_position.all()
+        candidate_rows = []
+        for candidate in candidates:
+            yes_count = Vote.objects.filter(position=position, candidate=candidate, choice='yes').count()
+            no_count = Vote.objects.filter(position=position, candidate=candidate, choice='no').count()
+            total = yes_count + no_count
+            candidate_rows.append({
+                'name': f"{candidate.candidate_name.first_name} {candidate.candidate_name.last_name}",
+                'yes': yes_count,
+                'no': no_count,
+                'total': total,
+            })
+        results.append({
+            'position': position.position_name,
+            'candidates': candidate_rows
+        })
+
+    # build PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("Vote Results", styles['Title']))
+    story.append(Spacer(1, 12))
+
+    # summary counts
+    story.append(Paragraph(f"Total registered voters: <b>{total_voters}</b>", styles['Normal']))
+    story.append(Paragraph(f"Number who voted: <b>{voted_count}</b>", styles['Normal']))
+    story.append(Paragraph(f"Number yet to vote: <b>{not_voted_count}</b>", styles['Normal']))
+    story.append(Spacer(1, 12))
+
+    # per-position tables
+    for r in results:
+        story.append(Paragraph(r['position'], styles['Heading2']))
+        story.append(Spacer(1, 6))
+
+        # table header + rows
+        data = [["Candidate", "Yes", "No", "Total"]]
+        for c in r['candidates']:
+            data.append([c['name'], str(c['yes']), str(c['no']), str(c['total'])])
+
+        table = Table(data, colWidths=[240, 60, 60, 60])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#3E2723")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('ALIGN',(1,1),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.25, colors.grey),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (0,0), (-1,-1), 6),
+            ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ]))
+        story.append(table)
+        story.append(Spacer(1, 12))
+
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="vote_results.pdf"'
+    return response
+# ...existing code...

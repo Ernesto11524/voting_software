@@ -17,4 +17,5 @@ urlpatterns = [
     path('vote_results/', main_views.vote_results, name='vote_results'),
     path('not-voted/', main_views.not_voted_list, name='not_voted_list'),
     path('candidate-voters/<int:candidate_id>/', main_views.candidate_voters, name='candidate_voters'),
+    path('vote_results/pdf/', main_views.export_vote_results_pdf, name='vote_results_pdf'),
 ]

@@ -17,6 +17,24 @@
   margin-bottom: 24px;
 }
 
+/* ...existing rules ... */
+
+.results-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+.results-header .btn {
+  background:#3E2723;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:700;
+}
+
 .candidate-card {
   background: #f9f6f2;
   border-radius: 10px;
